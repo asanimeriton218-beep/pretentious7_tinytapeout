@@ -1,1 +1,21 @@
-library IEEE; use IEEE.STD_LOGIC_1164.ALL; use IEEE.NUMERIC_STD.ALL; entity M_PRS_CPU is Port ( clk     : in  std_logic; reset   : in  std_logic; led_out : out std_logic_vector(7 downto 0);  -- simple IO switch_in : in std_logic_vector(7 downto 0)  -- simple IO ); end M_PRS_CPU; architecture Behavioral of M_PRS_CPU is -- CPU signals signal PC       : std_logic_vector(7 downto 0) := (others=>'0'); signal ACC      : std_logic_vector(7 downto 0) := (others=>'0'); signal IR       : std_logic_vector(7 downto 0) := (others=>'0'); signal opcode   : std_logic_vector(3 downto 0); signal operand  : std_logic_vector(3 downto 0); signal ALU_result : std_logic_vector(7 downto 0); -- Stack type stack_array is array(0 to 15) of std_logic_vector(7 downto 0); signal Stack_MEM : stack_array := (others => (others => '0')); signal SP : integer range 0 to 16 := 0; signal stack_out : std_logic_vector(7 downto 0); -- RAM type ram_array is array(0 to 255) of std_logic_vector(7 downto 0); signal RAM : ram_array := (others => (others => '0')); -- Control signals signal push, pop : std_logic := '0'; signal ram_we    : std_logic := '0'; signal io_write  : std_logic := '0'; signal io_read   : std_logic := '0'; begin opcode  <= IR(7 downto 4); operand <= IR(3 downto 0); -- ALU process process(ACC, RAM, opcode) begin case opcode is when "0011" => -- ADD ALU_result <= std_logic_vector(unsigned(ACC) + unsigned(RAM(to_integer(unsigned(operand))))); when "0101" => -- SUB ALU_result <= std_logic_vector(unsigned(ACC) - unsigned(RAM(to_integer(unsigned(operand))))); when others => ALU_result <= ACC; end case; end process; -- CPU Main Process process(clk, reset) begin if reset = '1' then PC <= (others=>'0'); ACC <= (others=>'0'); SP <= 0; stack_out <= (others=>'0'); ram_we <= '0'; push <= '0'; pop <= '0'; led_out <= (others=>'0'); elsif rising_edge(clk) then ram_we <= '0'; push <= '0'; pop <= '0'; io_write <= '0'; io_read <= '0'; -- FETCH IR <= RAM(to_integer(unsigned(PC))); PC <= std_logic_vector(unsigned(PC) + 1); -- EXECUTE case opcode is when "0000" =>  -- NOP null; when "0001" =>  -- LOAD ACC ACC <= RAM(to_integer(unsigned(operand))); when "0010" =>  -- STORE ACC RAM(to_integer(unsigned(operand))) <= ACC; when "0011" =>  -- ADD ACC <= ALU_result; when "0101" =>  -- SUB ACC <= ALU_result; when "0110" =>  -- PUSH Stack_MEM(SP) <= ACC; SP <= SP + 1; when "0111" =>  -- POP SP <= SP - 1; ACC <= Stack_MEM(SP-1); when "1000" =>  -- JMP PC <= std_logic_vector(unsigned("0000"&operand)); when "1001" =>  -- IO WRITE led_out <= ACC; when "1010" =>  -- IO READ ACC <= switch_in; when others => null; end case; end if; end process; end Behavioral;
+module tt_um_m_prs_cpu (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire [7:0]  ui_in,
+    output wire [7:0]  uo_out,
+    input  wire [7:0]  uio_in,
+    output wire [7:0]  uio_out,
+    output wire [7:0]  uio_oe
+);
+
+    // required
+    assign uio_out = 8'b0;
+    assign uio_oe  = 8'b0;
+
+    wire reset = ~rst_n;
+
+    // YOUR CPU LOGIC GOES HERE
+    // ui_in  = switch_in
+    // uo_out = led_out
+
+endmodule
